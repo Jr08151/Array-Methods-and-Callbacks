@@ -117,23 +117,133 @@ getAllWinners(getYears, getWinners);
 Hint: Investigate your data to find "team initials"!
 Hint: use `.reduce` */
 
-function getCountryWins(/* code here */) {
+function getCountryWins(data, country_code) {
 
-    /* code here */
+    var winners = []
 
+    for (var x = 0; x < data.length; x++) {
+        if (data[x]["Home Team Goals"] > data[x]["Away Team Goals"]) {
+            winners.push(data[x]["Home Team Initials"]);
+        }
+        else {
+            winners.push(data[x]["Away Team Initials"]);
+        }
+    }
+
+    const how_many = winners.reduce((wins, country) => {
+        return wins + (country == country_code);
+    }, 0)
+
+    console.log(how_many)
+    return how_many;
 };
 
-getCountryWins();
-
+getCountryWins(getFinals(fifaData), "ITA");
 /* Task 8: Write a function called `getAverageGoals` that accepts a parameter `data` and returns the the average number of home team goals and away team goals scored per match (Hint: use .reduce and do this in 2 steps) */
 
-function getAverageGoals(/* code here */) {
+function getGoals(data) {
 
-    /* code here */
+    const teams = data.map((item) => {
+        return {
+            "Team": item["Home Team Name"],
+            "Goals": item["Home Team Goals"],
+            "awayTeam": item["Away Team Name"],
+            "awayGoals": item["Away Team Goals"]
+        }
+    })
 
-};
+    console.log(teams);
 
-getAverageGoals();
+    let homeGoals = teams.reduce((count, item) => {
+        let home = count.get(item.Team) || 0;
+        count.set(item.Team, item.Goals + home);
+        return count;
+    }, new Map());
+
+    var reducedHome = [...homeGoals].map(([team, goals]) => {
+        return {team, goals};
+    })
+
+    let awayGoals = teams.reduce((count, item) => {
+        let away = count.get(item.awayTeam) || 0;
+        count.set(item.awayTeam, item.awayGoals + away);
+        return count;
+    }, new Map());
+
+    var reducedAway = [...awayGoals].map(([team, goals]) => {
+        return {team, goals};
+    })
+
+    var mergedTeam = reducedHome.concat(reducedAway);
+
+    var list = mergedTeam.reduce(function(result, current) {
+        result[current.team] = result[current.team] || 0;
+        result[current.team] += current.goals;
+        return result;
+    }, {});
+
+    var final_list = Object.keys(list).map(function(current) {
+        return {
+            Team: current,
+            Goals: list[current],
+        }
+    })
+
+    console.log(final_list);
+
+    var homeOccurances = teams.reduce(function(team, count) {
+        team[count.Team] = (team[count.Team] || 0) + 1;
+        return team;
+    }, {});
+
+    var awayOccurances = teams.reduce(function(team, count) {
+        team[count.awayTeam] = (team[count.awayTeam] || 0) + 1;
+        return team;
+    }, {});
+
+    var homeObject = Object.keys(homeOccurances).map(function(current) {
+        return {
+            Team: current,
+            Occurances: homeOccurances[current],
+        }
+    })
+
+    var awayObject = Object.keys(awayOccurances).map(function(current) {
+        return {
+            Team: current,
+            Occurances: awayOccurances[current],
+        }
+    })
+
+    var mergedOccurances = homeObject.concat(awayObject);
+
+    var final_occurances_obj = mergedOccurances.reduce(function(result, current) {
+        result[current.Team] = result[current.Team] || 0;
+        result[current.Team] += current.Occurances;
+        return result;
+    }, {});
+
+    var final_occurances = Object.keys(final_occurances_obj).map(function(current) {
+        return {
+            Team: current,
+            Occurances: final_occurances_obj[current],
+        }
+    })
+
+    console.log(final_occurances);
+
+    var average = [];
+
+    for(var x = 0; x < final_list.length; x++) {
+        var average_float = final_list[x].Goals / final_occurances[x].Occurances
+        average.push(average_float);
+    }
+
+    console.log(average);
+
+}
+
+getGoals(getFinals(fifaData));
 
 
 /// STRETCH 🥅 //
